@@ -38,28 +38,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== CARRUSEL =====
     const carousel = document.querySelector('.carousel');
     if (carousel) {
-        const items = carousel.querySelectorAll('.carousel-item');
-        let currentIndex = 0;
+        let currentSlide = 0;
+        let isMoving = false;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const prevButton = document.querySelector('.carousel-button.prev');
+        const nextButton = document.querySelector('.carousel-button.next');
+        let autoplayInterval;
 
-        function showItem(index) {
-            items.forEach((item, i) => {
-                if (i === index) {
-                    item.style.opacity = 1;
-                    item.setAttribute('aria-hidden', 'false');
-                } else {
-                    item.style.opacity = 0;
-                    item.setAttribute('aria-hidden', 'true');
-                }
+        function moveSlide(direction) {
+            if (isMoving) return;
+            isMoving = true;
+
+            const movement = direction === 'next' ? -100 : 100;
+            currentSlide = direction === 'next' ? 
+                (currentSlide + 1) % totalSlides : 
+                (currentSlide - 1 + totalSlides) % totalSlides;
+
+            carousel.style.transform = `translateX(${currentSlide * -50}%)`;
+
+            setTimeout(() => {
+                isMoving = false;
+            }, 500);
+        }
+
+        function startAutoplay() {
+            stopAutoplay();
+            autoplayInterval = setInterval(() => moveSlide('next'), 5000);
+        }
+
+        function stopAutoplay() {
+            if (autoplayInterval) {
+                clearInterval(autoplayInterval);
+                autoplayInterval = null;
+            }
+        }
+
+        // Event Listeners
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                stopAutoplay();
+                moveSlide('prev');
+                startAutoplay();
             });
         }
 
-        function nextItem() {
-            currentIndex = (currentIndex + 1) % items.length;
-            showItem(currentIndex);
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                stopAutoplay();
+                moveSlide('next');
+                startAutoplay();
+            });
         }
 
-        showItem(currentIndex);
-        setInterval(nextItem, 5000);
+        carousel.addEventListener('mouseenter', stopAutoplay);
+        carousel.addEventListener('mouseleave', startAutoplay);
+
+        // Iniciar el carrusel
+        startAutoplay();
     }
 
     // ===== MODAL DE COMPRA RÁPIDA =====
